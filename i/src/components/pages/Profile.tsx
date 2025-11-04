@@ -10,7 +10,9 @@ interface UserProfile {
 }
 
 const Profile: React.FC = () => {
-  const { darkMode } = useTheme(); 
+    
+const { darkMode } = useTheme();
+console.log(darkMode); 
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     name: '',
