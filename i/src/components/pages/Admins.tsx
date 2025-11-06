@@ -1,17 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { useAdmins } from '../../services/adminApi';
-import SearchBar from '../common/SearchBa';
+import SearchBar from '../common/SearchBa'; 
 import Filter from '../common/Filter';
 
 const Admins: React.FC = () => {
-  const { admins, loading, error, createAdmin, updateAdmin, deleteAdmin } = useAdmins();
+  const { admins, loading, error, updateAdmin, deleteAdmin } = useAdmins();
   const [showForm, setShowForm] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     role: 'Admin',
@@ -19,34 +20,44 @@ const Admins: React.FC = () => {
 
   const filteredAdmins = useMemo(() => {
     return admins.filter(admin => {
-      const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          admin.role.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFilter = !statusFilter || admin.status === statusFilter;
+      const firstName = admin?.first_name || '';
+      const lastName = admin?.last_name || '';
+      const email = admin?.email || '';
+      const role = admin?.role || '';
+      
+      const fullName = `${firstName} ${lastName}`.toLowerCase();
+      const searchTermLower = searchTerm.toLowerCase();
+      
+      const matchesSearch = fullName.includes(searchTermLower) ||
+                          email.toLowerCase().includes(searchTermLower) ||
+                          role.toLowerCase().includes(searchTermLower);
+      
+      const matchesFilter = !statusFilter || admin?.status === statusFilter;
+      
       return matchesSearch && matchesFilter;
     });
   }, [admins, searchTerm, statusFilter]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = editingAdmin 
-      ? await updateAdmin(editingAdmin.id, formData)
-      : await createAdmin(formData);
-    
-    if (success) {
-      setShowForm(false);
-      setEditingAdmin(null);
-      setFormData({ name: '', email: '', phone: '', role: 'Admin' });
+    if (editingAdmin) {
+      const success = await updateAdmin(editingAdmin._id, formData);
+      if (success) {
+        setShowForm(false);
+        setEditingAdmin(null);
+        setFormData({ first_name: '', last_name: '', email: '', phone: '', role: 'Admin' });
+      }
     }
   };
 
   const handleEdit = (admin: any) => {
     setEditingAdmin(admin);
     setFormData({
-      name: admin.name,
-      email: admin.email,
+      first_name: admin.first_name || '',
+      last_name: admin.last_name || '',
+      email: admin.email || '',
       phone: admin.phone || '',
-      role: admin.role,
+      role: admin.role || 'Admin',
     });
     setShowForm(true);
   };
@@ -119,8 +130,18 @@ const Admins: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ism</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Familiya</label>
+                <input
+                  type="text"
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
                 />
@@ -171,7 +192,7 @@ const Admins: React.FC = () => {
                   onClick={() => {
                     setShowForm(false);
                     setEditingAdmin(null);
-                    setFormData({ name: '', email: '', phone: '', role: 'Admin' });
+                    setFormData({ first_name: '', last_name: '', email: '', phone: '', role: 'Admin' });
                   }}
                   className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
                 >
@@ -197,8 +218,10 @@ const Admins: React.FC = () => {
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredAdmins.map((admin) => (
-              <tr key={admin.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{admin.name}</td>
+              <tr key={admin._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  {admin.first_name} {admin.last_name}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{admin.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{admin.phone || '-'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{admin.role}</td>
@@ -219,7 +242,7 @@ const Admins: React.FC = () => {
                     Tahrirlash
                   </button>
                   <button
-                    onClick={() => handleStatusChange(admin.id, admin.status)}
+                    onClick={() => handleStatusChange(admin._id, admin.status)}
                     className={admin.status === 'active' 
                       ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300' 
                       : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'
@@ -228,7 +251,7 @@ const Admins: React.FC = () => {
                     {admin.status === 'active' ? 'Nofaollashtirish' : 'Faollashtirish'}
                   </button>
                   <button
-                    onClick={() => handleDelete(admin.id)}
+                    onClick={() => handleDelete(admin._id)}
                     className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                   >
                     O'chirish

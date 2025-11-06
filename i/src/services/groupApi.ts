@@ -1,4 +1,3 @@
-// Интерфейсы
 export interface Group {
   id: string;
   name: string;
@@ -16,7 +15,6 @@ export interface CreateGroupData {
   course: string;
 }
 
-// API функции
 const API_URL = 'https://690a56851a446bb9cc224f41.mockapi.io/guruhlar';
 
 export const groupApi = {
@@ -56,7 +54,6 @@ export const groupApi = {
   },
 };
 
-// Хук
 import { useState, useEffect } from 'react';
 
 export const useGroups = () => {

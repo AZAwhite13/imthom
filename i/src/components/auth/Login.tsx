@@ -29,16 +29,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (!formData.email || !formData.password) {
-        throw new Error('Email va parolni kiriting');
+      if (formData.email === 'usern88@mail.ru' && formData.password === '12345678') {
+        onLogin(formData.email);
+       
+        console.log('Muvaffaqiyatli login! Dashboardga yo‘naltirilmoqda...');
+      } else {
+        throw new Error('Email yoki parol noto‘g‘ri.');
       }
-
-      if (!formData.email.includes('@')) {
-        throw new Error('Email manzil noto‘g‘ri');
-      }
-
-      onLogin(formData.email);
-      window.location.href = '/dashboard';
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Xatolik yuz berdi');
@@ -95,6 +92,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           >
             {loading ? 'Kiring...' : 'Kirish'}
           </button>
+
+         
+        
         </form>
       </div>
     </div>

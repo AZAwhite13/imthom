@@ -11,19 +11,19 @@ const Students: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   
   const [formData, setFormData] = useState({
-    name: '',
-    lastName: '',
-    email: '',
+    first_name: '',
+    last_name: '',
     phone: '',
+    adress: '',
+    all_price_group: 0,
     group: '',
   });
 
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          student.group.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = student.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          student.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          student.phone.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = !statusFilter || student.status === statusFilter;
       return matchesSearch && matchesFilter;
     });
@@ -31,31 +31,40 @@ const Students: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = editingStudent 
-      ? await updateStudent(editingStudent.id, formData)
-      : await createStudent(formData);
     
-    if (success) {
-      setShowForm(false);
-      setEditingStudent(null);
-      setFormData({ name: '', lastName: '', email: '', phone: '', group: '' });
+    if (editingStudent) {
+     
+      const success = await updateStudent(editingStudent._id, formData);
+      if (success) {
+        setShowForm(false);
+        setEditingStudent(null);
+        setFormData({ first_name: '', last_name: '', phone: '', adress: '', all_price_group: 0, group: '' });
+      }
+    } else {
+      
+      const success = await createStudent(formData);
+      if (success) {
+        setShowForm(false);
+        setFormData({ first_name: '', last_name: '', phone: '', adress: '', all_price_group: 0, group: '' });
+      }
     }
   };
 
   const handleEdit = (student: any) => {
     setEditingStudent(student);
     setFormData({
-      name: student.name,
-      lastName: student.lastName,
-      email: student.email,
+      first_name: student.first_name,
+      last_name: student.last_name,
       phone: student.phone,
-      group: student.group,
+      adress: student.adress || '',
+      all_price_group: student.all_price_group,
+      group: student.groups[0]?.name || '',
     });
     setShowForm(true);
   };
 
   const handleStatusChange = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    const newStatus = currentStatus === 'faol' ? 'noactive' : 'faol';
     await updateStudent(id, { status: newStatus });
   };
 
@@ -66,8 +75,8 @@ const Students: React.FC = () => {
   };
 
   const statusOptions = [
-    { value: 'active', label: 'Faol' },
-    { value: 'inactive', label: 'Nofaol' },
+    { value: 'faol', label: 'Faol' },
+    { value: 'noactive', label: 'Nofaol' },
   ];
 
   const groupOptions = [
@@ -86,7 +95,11 @@ const Students: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-400">Barcha studentlarni boshqarish</p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setEditingStudent(null);
+            setFormData({ first_name: '', last_name: '', phone: '', adress: '', all_price_group: 0, group: '' });
+            setShowForm(true);
+          }}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
         >
           + Yangi student
@@ -115,7 +128,7 @@ const Students: React.FC = () => {
 
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+          <div className=" dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
             <h3 className="text-xl font-bold mb-4 dark:text-white">
               {editingStudent ? 'Tahrirlash' : 'Yangi Student'}
             </h3>
@@ -124,8 +137,8 @@ const Students: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ism</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({...formData, first_name: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
                 />
@@ -134,18 +147,8 @@ const Students: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Familiya</label>
                 <input
                   type="text"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
                 />
@@ -158,6 +161,24 @@ const Students: React.FC = () => {
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manzil</label>
+                <input
+                  type="text"
+                  value={formData.adress}
+                  onChange={(e) => setFormData({...formData, adress: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Guruh narxi</label>
+                <input
+                  type="number"
+                  value={formData.all_price_group}
+                  onChange={(e) => setFormData({...formData, all_price_group: Number(e.target.value)})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
               <div>
@@ -188,7 +209,7 @@ const Students: React.FC = () => {
                   onClick={() => {
                     setShowForm(false);
                     setEditingStudent(null);
-                    setFormData({ name: '', lastName: '', email: '', phone: '', group: '' });
+                    setFormData({ first_name: '', last_name: '', phone: '', adress: '', all_price_group: 0, group: '' });
                   }}
                   className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
                 >
@@ -206,28 +227,42 @@ const Students: React.FC = () => {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ism</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Familiya</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Telefon</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Guruh</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Manzil</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Guruh narxi</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Guruhlar</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Holat</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amallar</th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredStudents.map((student) => (
-              <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{student.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{student.lastName}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{student.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{student.phone}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{student.group}</td>
+              <tr key={student._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  {student.first_name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {student.last_name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {student.phone}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {student.adress || 'Mavjud emas'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {student.all_price_group.toLocaleString()} so'm
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {student.groups.length > 0 ? student.groups[0].name : 'Mavjud emas'}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    student.status === 'active' 
+                    student.status === 'faol' 
                       ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' 
                       : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
                   }`}>
-                    {student.status === 'active' ? 'faol' : 'nofaol'}
+                    {student.status === 'faol' ? 'faol' : 'nofaol'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -238,16 +273,16 @@ const Students: React.FC = () => {
                     Tahrirlash
                   </button>
                   <button
-                    onClick={() => handleStatusChange(student.id, student.status)}
-                    className={student.status === 'active' 
+                    onClick={() => handleStatusChange(student._id, student.status)}
+                    className={student.status === 'faol' 
                       ? 'text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300' 
                       : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'
                     }
                   >
-                    {student.status === 'active' ? 'Nofaollashtirish' : 'Faollashtirish'}
+                    {student.status === 'faol' ? 'Nofaollashtirish' : 'Faollashtirish'}
                   </button>
                   <button
-                    onClick={() => handleDelete(student.id)}
+                    onClick={() => handleDelete(student._id)}
                     className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                   >
                     O'chirish
